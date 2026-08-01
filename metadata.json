@@ -14,8 +14,8 @@
         "Id": "org.kde.transmissionmonitor",
         "License": "MIT",
         "Name": "Transmission Monitor",
-        "Version": "1.1.0",
-        "Website": "https://github.com/Amiell3"
+        "Version": "1.0.3",
+        "Website": "https://github.com/Amielle-Inside/TransmissionMonitorwidget"
     },
     "X-Plasma-API": "declarativeappletscript",
     "X-Plasma-API-Minimum-Version": "6.0",

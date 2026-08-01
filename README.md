@@ -1,10 +1,10 @@
-# 📊 Transmission Monitor — KDE Plasma 6 Widget
+# Transmission Monitor — KDE Plasma 6 Widget
 
 Um widget nativo para KDE Plasma 6 que monitora o Transmission RPC em tempo real, filtrando torrents por categorias do Sonarr/Radarr, com gráfico de velocidade ao vivo e estatísticas acumuladas.
 
 ---
 
-## 🤖 Sobre a Criação
+## Sobre a Criação
 
 Este widget foi criado com **[Hermes Agent](https://github.com/NousResearch/hermes-agent)** — um agente de IA desenvolvido pela **[Nous Research](https://www.nousresearch.com/)**.
 
@@ -20,7 +20,7 @@ Todo o código fonte, estrutura do plasmoid, lógica de RPC, Canvas do gráfico,
 
 ---
 
-## ✨ Funcionalidades
+## Funcionalidades
 
 - **Cards de velocidade em tempo real** — Download, Upload (B/s, KB/s, MB/s auto-formatado)
 - **Gráfico de velocidade ao vivo** — Linhas de download/upload com fill, grid e eixos rotulados
@@ -34,7 +34,7 @@ Todo o código fonte, estrutura do plasmoid, lógica de RPC, Canvas do gráfico,
 
 ---
 
-## 🔧 Requisitos
+## Requisitos
 
 | Componente | Versão Mínima | Notas |
 |---|---|---|
@@ -45,11 +45,11 @@ Todo o código fonte, estrutura do plasmoid, lógica de RPC, Canvas do gráfico,
 | **Radarr** | qualquer | Opcional — filtro funciona por categoria/label no Transmission |
 | **Distro** | qualquer distro com Plasma 6 | Testado em Bazzite (Fedora Atomic), Fedora, Arch |
 
-> ⚠️ **Não compatível com KDE Plasma 5** — O widget usa `PlasmoidItem` (não `PlasmaWidgets.Applet`), `metadata.json` com `KPlugin`, e `X-Plasma-API-Minimum-Version: "6.0"`.
+>  **Não compatível com KDE Plasma 5** — O widget usa `PlasmoidItem` (não `PlasmaWidgets.Applet`), `metadata.json` com `KPlugin`, e `X-Plasma-API-Minimum-Version: "6.0"`.
 
 ---
 
-## 📦 Instalação
+## Instalação
 
 ### Método 1: Instalar via arquivo (recomendado)
 
@@ -62,7 +62,7 @@ Todo o código fonte, estrutura do plasmoid, lógica de RPC, Canvas do gráfico,
 
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/Amiell3/transmission-monitor.git
+git clone https://github.com/Amielle-Inside/TransmissionMonitorwidget.git
 cd transmission-monitor
 
 # 2. Copie a estrutura para o diretório de plasmoids do usuário
@@ -73,22 +73,22 @@ cp -r * ~/.local/share/plasma/plasmoids/org.kde.transmissionmonitor/
 kbuildsycoca6 --noincremental
 
 # 4. Reinicie o Plasma (um dos dois)
-#    Opção A — via systemctl:
+# Opção A — via systemctl:
 systemctl --user restart plasma-plasmashell.service
-#    Opção B — logout e login
+# Opção B — logout e login
 ```
 
 ### Método 3: Instalar via kpackagetool6
 
 ```bash
-git clone https://github.com/Amiell3/transmission-monitor.git
+git clone https://github.com/Amielle-Inside/TransmissionMonitorwidget.git
 cd transmission-monitor
 kpackagetool6 --type Plasma/Applet --install .
 ```
 
 ---
 
-## ⚙️ Configuração
+## Configuração
 
 Após adicionar o widget ao desktop ou painel:
 
@@ -107,14 +107,14 @@ Após adicionar o widget ao desktop ou painel:
 | **Mostrar gráfico** | Exibir/ocultar o gráfico de velocidade | `true` |
 | **Tempospan do gráfico** | Janela de tempo em minutos (0 = tempo real) | `0` |
 
-3. Clique em **Testar Conexão** — se mostrar ✅, está pronto
+3. Clique em **Testar Conexão** — se mostrar , está pronto
 4. Clique em **OK**
 
-> 💡 **Dica:** Para que o filtro funcione, seus torrents do Sonarr/Radarr precisam estar marcados com as categorias `sonarr` ou `radarr` no Transmission. O Sonarr e Radarr fazem isso automaticamente ao enviar torrents para o Transmission.
+>  **Dica:** Para que o filtro funcione, seus torrents do Sonarr/Radarr precisam estar marcados com as categorias `sonarr` ou `radarr` no Transmission. O Sonarr e Radarr fazem isso automaticamente ao enviar torrents para o Transmission.
 
 ---
 
-## 🏗️ Como Funciona
+## Como Funciona
 
 ### Arquitetura
 
@@ -162,7 +162,7 @@ O widget usa o endpoint RPC do Transmission (`POST /transmission/rpc`):
 
 1. Primeira requisição pode retornar `409` com header `X-Transmission-Session-Id`
 2. O código captura esse header e refaz a requisição com ele
-3. Autenticação via Basic Auth (`Authorization: Base64(user:pass)`)
+3. Autenticação via Basic Auth (`Authorization: Base64...s)`)
 
 **Métodos usados:**
 
@@ -183,7 +183,7 @@ O gráfico é desenhado em um `Canvas` QML:
 
 ---
 
-## 🔨 Build from Source
+## Build from Source
 
 ### Pré-requisitos
 
@@ -195,7 +195,7 @@ O gráfico é desenhado em um `Canvas` QML:
 
 ```bash
 # 1. Clone
-git clone https://github.com/Amiell3/transmission-monitor.git
+git clone https://github.com/Amielle-Inside/TransmissionMonitorwidget.git
 cd transmission-monitor
 
 # 2. Verifique a estrutura
@@ -218,7 +218,7 @@ kbuildsycoca6 --noincremental
 systemctl --user restart plasma-plasmashell.service
 
 # 7. Adicione o widget:
-#    Clique direito no desktop → Adicionar Widgets → procure "Transmission Monitor"
+# Clique direito no desktop → Adicionar Widgets → procure "Transmission Monitor"
 ```
 
 ### Para atualizar uma instalação existente
@@ -238,7 +238,7 @@ kpackagetool6 --type Plasma/Applet --remove org.kde.transmissionmonitor
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 | Problema | Solução |
 |---|---|
@@ -252,7 +252,7 @@ kpackagetool6 --type Plasma/Applet --remove org.kde.transmissionmonitor
 
 ---
 
-## 📋 Estrutura de Arquivos
+## Estrutura de Arquivos
 
 ```
 transmission-monitor/
@@ -272,20 +272,20 @@ transmission-monitor/
 
 ---
 
-## 📄 Licença
+## Licença
 
 MIT License — sinta-se livre para usar, modificar e distribuir.
 
 ---
 
-## 👤 Créditos
+## Créditos
 
-- **Idealização e direção:** [Amielle](https://github.com/Amiell3) 🏳️‍⚧️
+- **Idealização e direção:** [Amielle](https://github.com/Amielle-Inside) ‍
 - **Implementação:** [Hermes Agent](https://github.com/NousResearch/hermes-agent) (IA) com correções e feedback da criadora
 
 ---
 
-## 🌟 Agradecimentos
+## Agradecimentos
 
 - [Nous Research](https://www.nousresearch.com/) pelo desenvolvimento do Hermes Agent
 - KDE Community pelo Plasma 6 e PlasmaComponents3
