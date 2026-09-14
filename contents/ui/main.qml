@@ -604,7 +604,7 @@ PlasmoidItem {
                                     model: 5
                                     PlasmaComponents3.Label {
                                         text: {
-                                            return root.cachedTimeLabels[index] || \"--:--\"
+                                            return root.cachedTimeLabels[index] || "--:--"
                                         }
                                         font.pixelSize: Kirigami.Units.fontSizes.xSmall
                                         color: Kirigami.Theme.textColor
