@@ -15,6 +15,8 @@ KCM.SimpleKCM {
     property alias cfg_graphTimespan: graphTimespanSpinBox.value
     property alias cfg_transparency: transparencySpinBox.value
     property alias cfg_themeIndex: themeComboBox.currentIndex
+    property alias cfg_powerSaveMode: powerSaveModeCheckBox.checked
+    property alias cfg_maxTorrentsShown: maxTorrentsShownSpinBox.value
     property alias cfg_trHost: trHostField.text
     property alias cfg_trPort: trPortSpinBox.value
     property alias cfg_trUser: trUserField.text
@@ -120,6 +122,29 @@ KCM.SimpleKCM {
 
             Component.onCompleted: {
                 value = cfg_graphTimespan !== undefined ? cfg_graphTimespan : 500
+            }
+        }
+
+        QQC2.CheckBox {
+            id: powerSaveModeCheckBox
+            Kirigami.FormData.label: "Modo Econômico (menos updates, sem gráfico):"
+            checked: false
+
+            Component.onCompleted: {
+                checked = cfg_powerSaveMode !== undefined ? cfg_powerSaveMode : false
+            }
+        }
+
+        QQC2.SpinBox {
+            id: maxTorrentsShownSpinBox
+            Kirigami.FormData.label: "Máx. torrents na lista:"
+            from: 5
+            to: 50
+            value: 15
+            stepSize: 5
+
+            Component.onCompleted: {
+                value = cfg_maxTorrentsShown !== undefined ? cfg_maxTorrentsShown : 15
             }
         }
 

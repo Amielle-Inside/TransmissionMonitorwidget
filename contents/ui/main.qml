@@ -16,14 +16,25 @@ PlasmoidItem {
     Layout.preferredWidth: Kirigami.Units.gridUnit * 40
     Layout.preferredHeight: Kirigami.Units.gridUnit * 55
 
+    // ==========================================
+    // VISIBILITY & PERFORMANCE CONTROL
+    // ==========================================
+    property bool isActive: root.expanded || plasmoid.formFactor !== PlasmaCore.Types.Planar
+    property bool _fetching: false
+    property var lastPaintData: null
+    property int lastPaintTime: 0
+    property int paintThrottleMs: 1000
+
     // Reactive config bindings with proper fallbacks
     property string widgetTitle: plasmoid.configuration.widgetTitle || "Transmission Monitor"
     property int updateInterval: plasmoid.configuration.updateInterval || 5000
+    property bool powerSaveMode: plasmoid.configuration.powerSaveMode || false
     property bool showGraph: plasmoid.configuration.showGraph !== false
     // graphTimespan stored as int × 100 (e.g. 500 = 5.00 min). 0 = realtime/unlimited.
     property real graphTimespan: (plasmoid.configuration.graphTimespan !== undefined ? plasmoid.configuration.graphTimespan : 500) / 100.0
     property int transparency: plasmoid.configuration.transparency !== undefined ? plasmoid.configuration.transparency : 0
     property int themeIndex: plasmoid.configuration.themeIndex !== undefined ? plasmoid.configuration.themeIndex : 0
+    property int maxTorrentsShown: plasmoid.configuration.maxTorrentsShown || 15
 
     // State
     property var sessionStats: ({})
@@ -36,12 +47,34 @@ PlasmoidItem {
     property string lastError: ""
     property int maxHistoryPoints: 300
 
+    // Graph cache properties
+    property var cachedGraphData: null
+    property int lastGraphUpdate: 0
+    property var cachedTimeLabels: []
+
+    // Speed history management
+    property int historyTrimIndex: 0
+
     // Monotonically increasing tick used to trigger canvas repaints
     // from root scope (IDs inside fullRepresentation are NOT visible from root JS)
     property int paintTick: 0
 
     // Computed opacity for backdrop
     property real backdropOpacity: transparency / 100.0 * 0.85 + 0.15
+
+    // Helper: should we repaint the graph?
+    function shouldRepaint() {
+        if (root.powerSaveMode) return false  // No repaints in power save mode
+        var now = Date.now()
+        if (now - root.lastPaintTime < root.paintThrottleMs) return false
+        var current = { down: root.sessionStats.downloadSpeed || 0, up: root.sessionStats.uploadSpeed || 0 }
+        if (root.lastPaintData &&
+            Math.abs(current.down - root.lastPaintData.down) < 1024 &&
+            Math.abs(current.up - root.lastPaintData.up) < 1024) return false
+        root.lastPaintData = current
+        root.lastPaintTime = now
+        return true
+    }
 
     // ==========================================
     // COMPACT REPRESENTATION (Panel)
@@ -390,7 +423,7 @@ PlasmoidItem {
                                 model: 6
                                 PlasmaComponents3.Label {
                                     text: {
-                                        var maxSpeed = getMaxSpeed()
+                                        var maxSpeed = root.cachedGraphData ? root.cachedGraphData.maxSpeed : getMaxSpeed()
                                         return formatSpeed(maxSpeed - index * (maxSpeed / 5))
                                     }
                                     font.pixelSize: Kirigami.Units.fontSizes.xSmall
@@ -468,28 +501,11 @@ PlasmoidItem {
                                 }
 
                                 onPaint: {
+                                    if (!root.shouldRepaint()) return
+                                    var data = root.cachedGraphData
+                                    if (!data || data.points.length < 2) return
                                     var ctx = getContext("2d")
                                     ctx.clearRect(0, 0, width, height)
-                                    if (root.speedHistory.length < 2) return
-
-                                    var now = Date.now()
-                                    var ts = root.graphTimespan
-                                    if (ts === undefined || isNaN(ts)) ts = 5.0
-                                    var timeSpanMs = ts === 0 ? 0 : ts * 60 * 1000
-                                    var minTime = timeSpanMs === 0 ? 0 : (now - timeSpanMs)
-
-                                    var validPoints = timeSpanMs === 0 ? root.speedHistory : root.speedHistory.filter(function(p) { return p.time >= minTime })
-                                    if (validPoints.length < 2) return
-
-                                    var maxDown = Math.max.apply(null, validPoints.map(function(p) { return p.down }))
-                                    var maxUp = Math.max.apply(null, validPoints.map(function(p) { return p.up }))
-                                    var maxSpeed = Math.max(maxDown, maxUp, 1)
-                                    maxSpeed = maxSpeed * 1.2
-
-                                    var tMin = validPoints[0].time
-                                    var tMax = validPoints[validPoints.length - 1].time
-                                    var tRange = tMax - tMin
-                                    if (tRange === 0) tRange = 1
 
                                     // Colors from theme
                                     var dlColor = Kirigami.Theme.highlightColor
@@ -501,9 +517,9 @@ PlasmoidItem {
                                     // Download fill
                                     ctx.fillStyle = dlFill
                                     ctx.beginPath()
-                                    validPoints.forEach(function(p, idx) {
-                                        var x = ((p.time - tMin) / tRange) * width
-                                        var y = height - (height * (p.down / maxSpeed))
+                                    data.points.forEach(function(p, idx) {
+                                        var x = p.x * width
+                                        var y = height * p.yDown
                                         if (idx === 0) {
                                             ctx.moveTo(x, height)
                                             ctx.lineTo(x, y)
@@ -511,17 +527,17 @@ PlasmoidItem {
                                             ctx.lineTo(x, y)
                                         }
                                     })
-                                    ctx.lineTo(((validPoints[validPoints.length-1].time - tMin) / tRange) * width, height)
-                                    ctx.lineTo(((validPoints[0].time - tMin) / tRange) * width, height)
+                                    ctx.lineTo(data.points[data.points.length - 1].x * width, height)
+                                    ctx.lineTo(data.points[0].x * width, height)
                                     ctx.closePath()
                                     ctx.fill()
 
                                     // Upload fill
                                     ctx.fillStyle = ulFill
                                     ctx.beginPath()
-                                    validPoints.forEach(function(p, idx) {
-                                        var x = ((p.time - tMin) / tRange) * width
-                                        var y = height - (height * (p.up / maxSpeed))
+                                    data.points.forEach(function(p, idx) {
+                                        var x = p.x * width
+                                        var y = height * p.yUp
                                         if (idx === 0) {
                                             ctx.moveTo(x, height)
                                             ctx.lineTo(x, y)
@@ -529,8 +545,8 @@ PlasmoidItem {
                                             ctx.lineTo(x, y)
                                         }
                                     })
-                                    ctx.lineTo(((validPoints[validPoints.length-1].time - tMin) / tRange) * width, height)
-                                    ctx.lineTo(((validPoints[0].time - tMin) / tRange) * width, height)
+                                    ctx.lineTo(data.points[data.points.length - 1].x * width, height)
+                                    ctx.lineTo(data.points[0].x * width, height)
                                     ctx.closePath()
                                     ctx.fill()
 
@@ -541,9 +557,9 @@ PlasmoidItem {
                                     ctx.lineCap = "round"
                                     ctx.lineJoin = "round"
                                     ctx.beginPath()
-                                    validPoints.forEach(function(p, idx) {
-                                        var x = ((p.time - tMin) / tRange) * width
-                                        var y = height - (height * (p.down / maxSpeed))
+                                    data.points.forEach(function(p, idx) {
+                                        var x = p.x * width
+                                        var y = height * p.yDown
                                         if (idx === 0) ctx.moveTo(x, y)
                                         else ctx.lineTo(x, y)
                                     })
@@ -553,26 +569,26 @@ PlasmoidItem {
                                     ctx.strokeStyle = ulColor
                                     ctx.lineWidth = 2.5
                                     ctx.beginPath()
-                                    validPoints.forEach(function(p, idx) {
-                                        var x = ((p.time - tMin) / tRange) * width
-                                        var y = height - (height * (p.up / maxSpeed))
+                                    data.points.forEach(function(p, idx) {
+                                        var x = p.x * width
+                                        var y = height * p.yUp
                                         if (idx === 0) ctx.moveTo(x, y)
                                         else ctx.lineTo(x, y)
                                     })
                                     ctx.stroke()
 
                                     // Current value dots
-                                    var last = validPoints[validPoints.length - 1]
-                                    var lastX = ((last.time - tMin) / tRange) * width
+                                    var last = data.points[data.points.length - 1]
+                                    var lastX = last.x * width
 
                                     ctx.fillStyle = dlColor
                                     ctx.beginPath()
-                                    ctx.arc(lastX, height - (height * (last.down / maxSpeed)), 4, 0, 2 * Math.PI)
+                                    ctx.arc(lastX, height * last.yDown, 4, 0, 2 * Math.PI)
                                     ctx.fill()
 
                                     ctx.fillStyle = ulColor
                                     ctx.beginPath()
-                                    ctx.arc(lastX, height - (height * (last.up / maxSpeed)), 4, 0, 2 * Math.PI)
+                                    ctx.arc(lastX, height * last.yUp, 4, 0, 2 * Math.PI)
                                     ctx.fill()
                                 }
                             }
@@ -588,11 +604,7 @@ PlasmoidItem {
                                     model: 5
                                     PlasmaComponents3.Label {
                                         text: {
-                                            var now = new Date()
-                                            var span = root.graphTimespan === 0 ? 300000 : root.graphTimespan * 60 * 1000
-                                            var t = now.getTime() - span + (span / 4) * index
-                                            var d = new Date(t)
-                                            return d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0')
+                                            return root.cachedTimeLabels[index] || \"--:--\"
                                         }
                                         font.pixelSize: Kirigami.Units.fontSizes.xSmall
                                         color: Kirigami.Theme.textColor
@@ -792,80 +804,82 @@ PlasmoidItem {
     // ==========================================
     // RPC FUNCTIONS
     // ==========================================
-    function makeRpcCall(method, args) {
+    function buildRpcRequest(method, args) {
         var host = plasmoid.configuration.trHost || "localhost"
         var port = plasmoid.configuration.trPort || 9091
         var user = plasmoid.configuration.trUser || "Amielle"
         var pass = plasmoid.configuration.trPass || "NewsInside@15"
         var rpcPath = plasmoid.configuration.trRpcPath || "/transmission/rpc"
         var url = "http://" + host + ":" + port + rpcPath
-
-        var xhr = new XMLHttpRequest()
-        xhr.open("POST", url, false)
-        xhr.setRequestHeader("Content-Type", "application/json")
-
         var auth = Qt.btoa(user + ":" + pass)
-        xhr.setRequestHeader("Authorization", "Basic " + auth)
+        return { url: url, auth: auth, body: JSON.stringify({method: method, arguments: args || {}}) }
+    }
 
+    function sendRpcAsync(req, onSuccess, onError) {
+        var xhr = new XMLHttpRequest()
+        xhr.open("POST", req.url, true)  // ASYNC!
+        xhr.setRequestHeader("Content-Type", "application/json")
+        xhr.setRequestHeader("Authorization", "Basic " + req.auth)
         if (root.sessionId) {
             xhr.setRequestHeader("X-Transmission-Session-Id", root.sessionId)
         }
 
-        var body = JSON.stringify({method: method, arguments: args || {}})
-        xhr.send(body)
-
-        if (xhr.status === 409) {
-            var newSessionId = xhr.getResponseHeader("X-Transmission-Session-Id")
-            if (newSessionId) {
-                root.sessionId = newSessionId
-                xhr.open("POST", url, false)
-                xhr.setRequestHeader("Content-Type", "application/json")
-                xhr.setRequestHeader("Authorization", "Basic " + auth)
-                xhr.setRequestHeader("X-Transmission-Session-Id", newSessionId)
-                xhr.send(body)
+        xhr.onload = function() {
+            if (xhr.status === 409) {
+                var newSid = xhr.getResponseHeader("X-Transmission-Session-Id")
+                if (newSid) {
+                    root.sessionId = newSid
+                    // Retry once with new session ID
+                    var retryXhr = new XMLHttpRequest()
+                    retryXhr.open("POST", req.url, true)
+                    retryXhr.setRequestHeader("Content-Type", "application/json")
+                    retryXhr.setRequestHeader("Authorization", "Basic " + req.auth)
+                    retryXhr.setRequestHeader("X-Transmission-Session-Id", newSid)
+                    retryXhr.onload = function() {
+                        handleRpcResponse(retryXhr, onSuccess, onError)
+                    }
+                    retryXhr.onerror = function() { onError(new Error("Network error on retry")) }
+                    retryXhr.send(req.body)
+                    return
+                }
             }
+            handleRpcResponse(xhr, onSuccess, onError)
         }
+        xhr.onerror = function() { onError(new Error("Network error")) }
+        xhr.send(req.body)
+    }
 
+    function handleRpcResponse(xhr, onSuccess, onError) {
         if (xhr.status !== 200) {
             var errorMsg = "HTTP " + xhr.status
             if (xhr.responseText) errorMsg += ": " + xhr.responseText
-            throw new Error(errorMsg)
+            onError(new Error(errorMsg))
+            return
         }
-
-        var response = JSON.parse(xhr.responseText)
-        if (response.result !== "success") {
-            throw new Error("RPC error: " + response.result)
+        try {
+            var response = JSON.parse(xhr.responseText)
+            if (response.result !== "success") {
+                onError(new Error("RPC error: " + response.result))
+                return
+            }
+            if (xhr.getResponseHeader("X-Transmission-Session-Id")) {
+                root.sessionId = xhr.getResponseHeader("X-Transmission-Session-Id")
+            }
+            onSuccess(response.arguments)
+        } catch (e) {
+            onError(new Error("Parse error: " + e.message))
         }
-        if (xhr.getResponseHeader("X-Transmission-Session-Id")) {
-            root.sessionId = xhr.getResponseHeader("X-Transmission-Session-Id")
-        }
-        return response.arguments
     }
 
     function fetchData() {
-        try {
-            var stats = makeRpcCall("session-stats", {})
+        if (root._fetching) return
+        root._fetching = true
 
-            var torrentData = makeRpcCall("torrent-get", {
-                fields: ["id", "name", "status", "downloadDir", "totalSize", "leftUntilDone", "rateDownload", "rateUpload", "uploadRatio", "eta", "peersConnected", "isFinished", "labels", "trackers"]
-            })
-
+        var req = buildRpcRequest("session-stats", {})
+        sendRpcAsync(req, function(stats) {
             root.sessionStats = stats
             root.connected = true
             root.hasData = true
-
-            if (torrentData.torrents) {
-                var filtered = torrentData.torrents.filter(function(t) {
-                    var labels = t.labels || []
-                    return labels.some(function(l) {
-                        var lower = l.toLowerCase()
-                        return lower.includes("sonarr") || lower.includes("radarr")
-                    })
-                })
-                root.torrents = filtered
-            } else {
-                root.torrents = []
-            }
 
             // Update speed history
             var now = Date.now()
@@ -875,22 +889,51 @@ PlasmoidItem {
             root.speedHistory.push({time: now, down: downSpeed, up: upSpeed})
             if (timeSpanMs > 0) {
                 var cutoff = now - timeSpanMs
-                root.speedHistory = root.speedHistory.filter(function(p) { return p.time > cutoff })
+                // In-place trim to avoid GC
+                var i = 0
+                while (i < root.speedHistory.length && root.speedHistory[i].time <= cutoff) i++
+                if (i > 0) root.speedHistory.splice(0, i)
             } else {
-                // Realtime mode — limit to maxHistoryPoints to avoid unbounded growth
                 if (root.speedHistory.length > root.maxHistoryPoints) {
-                    root.speedHistory = root.speedHistory.slice(-root.maxHistoryPoints)
+                    root.speedHistory.splice(0, root.speedHistory.length - root.maxHistoryPoints)
                 }
             }
 
-            updateUI()
+            updateGraphCache()
+            root.paintTick++
 
-        } catch (e) {
-            console.error("Fetch error:", e.message)
+            // Second request for torrents (parallel)
+            var req2 = buildRpcRequest("torrent-get", {
+                fields: ["id", "name", "status", "downloadDir", "totalSize", "leftUntilDone", "rateDownload", "rateUpload", "uploadRatio", "eta", "peersConnected", "isFinished", "labels", "trackers"]
+            })
+            sendRpcAsync(req2, function(torrentData) {
+                if (torrentData.torrents) {
+                    var filtered = torrentData.torrents.filter(function(t) {
+                        var labels = t.labels || []
+                        return labels.some(function(l) {
+                            var lower = l.toLowerCase()
+                            return lower.includes("sonarr") || lower.includes("radarr")
+                        })
+                    })
+                    root.torrents = filtered
+                } else {
+                    root.torrents = []
+                }
+                updateUI()
+                root._fetching = false
+            }, function(e) {
+                console.error("Fetch torrent error:", e.message)
+                root.torrents = []
+                updateUI()
+                root._fetching = false
+            })
+        }, function(e) {
+            console.error("Fetch stats error:", e.message)
             root.connected = false
             root.hasData = false
             root.lastError = e.message
-        }
+            root._fetching = false
+        })
     }
 
     function updateUI() {
@@ -971,7 +1014,15 @@ PlasmoidItem {
     Timer {
         id: updateTimer
         interval: root.updateInterval
-        running: true
+        running: root.isActive && root.connected && !root.powerSaveMode
+        repeat: true
+        onTriggered: fetchData()
+    }
+
+    Timer {
+        id: powerSaveTimer
+        interval: root.updateInterval * 3  // 3x slower in power save mode
+        running: root.isActive && root.connected && root.powerSaveMode
         repeat: true
         onTriggered: fetchData()
     }
