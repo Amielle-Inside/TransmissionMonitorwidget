@@ -1,0 +1,28 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Amielle",
+                "Email": ""
+            }
+        ],
+        "Category": "SystemMonitor",
+        "Description": "Monitor Transmission download/upload speeds and totals from Sonarr/Radarr",
+        "EnabledByDefault": true,
+        "Icon": "network-transmit-receive",
+        "Id": "org.kde.transmissionmonitor",
+        "License": "MIT",
+        "Name": "Transmission Monitor",
+        "Version": "1.0.3",
+        "Website": "https://github.com/Amielle-Inside/TransmissionMonitorwidget"
+    },
+    "X-Plasma-API": "declarativeappletscript",
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-Categories": "system;monitor;network",
+    "X-Plasma-DefaultSize": "400,520",
+    "X-Plasma-MainScript": "ui/main.qml",
+    "X-Plasma-Provides": "org.kde.transmissionmonitor",
+    "X-Plasma-Requires-Config": true,
+    "X-Plasma-StandAloneApp": false
+}

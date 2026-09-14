@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+      http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+    <kcfgfile name=""/>
+
+    <group name="General">
+        <entry name="widgetTitle" type="String">
+            <label>Widget title text</label>
+            <default>Transmission Monitor</default>
+        </entry>
+        <entry name="updateInterval" type="Int">
+            <label>Update interval in milliseconds</label>
+            <default>5000</default>
+        </entry>
+        <entry name="showGraph" type="Bool">
+            <label>Show speed graph</label>
+            <default>true</default>
+        </entry>
+        <entry name="graphTimespan" type="Int">
+            <label>Graph timespan in minutes × 100 (e.g. 500 = 5.00 min, 0 = realtime)</label>
+            <default>500</default>
+        </entry>
+        <entry name="transparency" type="Int">
+            <label>Widget transparency 0-100</label>
+            <default>0</default>
+        </entry>
+        <entry name="themeIndex" type="Int">
+            <label>Theme index</label>
+            <default>0</default>
+        </entry>
+        <entry name="trHost" type="String">
+            <label>Transmission RPC host</label>
+            <default>localhost</default>
+        </entry>
+        <entry name="trPort" type="Int">
+            <label>Transmission RPC port</label>
+            <default>9091</default>
+        </entry>
+        <entry name="trUser" type="String">
+            <label>Transmission RPC user</label>
+            <default>Amielle</default>
+        </entry>
+        <entry name="trPass" type="String">
+            <label>Transmission RPC password</label>
+            <default>NewsInside@15</default>
+        </entry>
+        <entry name="trRpcPath" type="String">
+            <label>Transmission RPC path</label>
+            <default>/transmission/rpc</default>
+        </entry>
+    </group>
+</kcfg>

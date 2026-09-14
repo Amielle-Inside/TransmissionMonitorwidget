@@ -1,0 +1,17 @@
+[Desktop Entry]
+Name=Transmission Monitor
+Comment=Monitor Transmission download/upload speeds and totals from Sonarr/Radarr
+Type=Service
+Icon=network-transmit-receive
+X-Plasma-API=declarativeappletscript
+X-Plasma-MainScript=ui/main.qml
+X-Plasma-DefaultSize=360,480
+X-Plasma-Categories=system;monitor;network
+X-KDE-PluginInfo-Author=Amielle
+X-KDE-PluginInfo-Email=
+X-KDE-PluginInfo-Name=org.kde.transmissionmonitor
+X-KDE-PluginInfo-Version=1.0.3
+X-KDE-PluginInfo-Website=https://github.com/Amielle-Inside/TransmissionMonitorwidget
+X-KDE-PluginInfo-License=MIT
+X-KDE-PluginInfo-EnabledByDefault=true
+X-Plasma-Provides=org.kde.transmissionmonitor
