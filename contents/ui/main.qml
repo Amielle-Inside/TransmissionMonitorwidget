@@ -167,12 +167,13 @@ PlasmoidItem {
                 spacing: Kirigami.Units.mediumSpacing
 
                 // App Icon using PlasmaComponents3.Icon
-                PlasmaComponents3.Icon {
+                Image {
                     id: appIcon
                     source: "network-transmit-receive"
                     Layout.preferredWidth: Kirigami.Units.iconSizes.large
                     Layout.preferredHeight: Kirigami.Units.iconSizes.large
                     color: Kirigami.Theme.highlightColor
+                    fillMode: Image.Pad
                 }
 
                 PlasmaComponents3.Label {
