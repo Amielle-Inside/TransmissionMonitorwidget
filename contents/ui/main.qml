@@ -785,14 +785,8 @@ PlasmoidItem {
                     }
 
                     Rectangle {
-                    Layout.fillWidth: true
-                    height: 1
-                    color: Kirigami.Theme.textColor
-                    opacity: 0.15
-                    radius: 0.5
-                }
-                        orientation: Qt.Vertical
-                        height: Kirigami.Units.gridUnit * 4.5
+                        width: 1
+                        Layout.fillHeight: true
                         color: Kirigami.Theme.highlightColor
                         opacity: 0.3
                     }
