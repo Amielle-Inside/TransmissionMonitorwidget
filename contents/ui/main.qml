@@ -168,7 +168,7 @@ PlasmoidItem {
                 // App Icon using Kirigami.Icon
                 Kirigami.Icon {
                     id: appIcon
-                    name: "network-transmit-receive"
+                    source: "network-transmit-receive"
                     Layout.preferredWidth: Kirigami.Units.iconSizes.large
                     Layout.preferredHeight: Kirigami.Units.iconSizes.large
                     color: Kirigami.Theme.highlightColor
