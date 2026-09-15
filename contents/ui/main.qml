@@ -221,7 +221,7 @@ PlasmoidItem {
                 spacing: Kirigami.Units.mediumSpacing
 
                 // Download Card
-                PlasmaComponents3.Card {
+                PlasmaComponents3.Frame {
                     Layout.fillWidth: true
                     Layout.preferredHeight: Kirigami.Units.gridUnit * 9
 
@@ -259,7 +259,7 @@ PlasmoidItem {
                 }
 
                 // Upload Card
-                PlasmaComponents3.Card {
+                PlasmaComponents3.Frame {
                     Layout.fillWidth: true
                     Layout.preferredHeight: Kirigami.Units.gridUnit * 9
 
@@ -297,7 +297,7 @@ PlasmoidItem {
                 }
 
                 // Active Torrents Card
-                PlasmaComponents3.Card {
+                PlasmaComponents3.Frame {
                     Layout.fillWidth: true
                     Layout.preferredHeight: Kirigami.Units.gridUnit * 9
 
@@ -335,12 +335,18 @@ PlasmoidItem {
             }
 
             // GRAPH SECTION
-            PlasmaComponents3.Separator {
+            Rectangle {
+                    Layout.fillWidth: true
+                    height: 1
+                    color: Kirigami.Theme.textColor
+                    opacity: 0.15
+                    radius: 0.5
+                }
                 Layout.fillWidth: true
                 visible: root.showGraph
             }
 
-            PlasmaComponents3.Card {
+            PlasmaComponents3.Frame {
                 id: graphCard
                 Layout.fillWidth: true
                 Layout.preferredHeight: Kirigami.Units.gridUnit * 22
@@ -620,7 +626,13 @@ PlasmoidItem {
             }
 
             // TORRENT LIST SECTION
-            PlasmaComponents3.Separator {
+            Rectangle {
+                    Layout.fillWidth: true
+                    height: 1
+                    color: Kirigami.Theme.textColor
+                    opacity: 0.15
+                    radius: 0.5
+                }
                 Layout.fillWidth: true
             }
 
@@ -648,7 +660,7 @@ PlasmoidItem {
                     visible: torrentListView.contentHeight > torrentListView.height
                 }
 
-                delegate: PlasmaComponents3.Card {
+                delegate: PlasmaComponents3.Frame {
                     width: torrentListView.width
                     height: Kirigami.Units.gridUnit * 6.5
                     implicitHeight: Kirigami.Units.gridUnit * 6.5
@@ -736,11 +748,17 @@ PlasmoidItem {
             }
 
             // TOTAL ACCUMULATED STATS
-            PlasmaComponents3.Separator {
+            Rectangle {
+                    Layout.fillWidth: true
+                    height: 1
+                    color: Kirigami.Theme.textColor
+                    opacity: 0.15
+                    radius: 0.5
+                }
                 Layout.fillWidth: true
             }
 
-            PlasmaComponents3.Card {
+            PlasmaComponents3.Frame {
                 Layout.fillWidth: true
                 Layout.preferredHeight: Kirigami.Units.gridUnit * 7
 
@@ -769,7 +787,13 @@ PlasmoidItem {
                         }
                     }
 
-                    PlasmaComponents3.Separator {
+                    Rectangle {
+                    Layout.fillWidth: true
+                    height: 1
+                    color: Kirigami.Theme.textColor
+                    opacity: 0.15
+                    radius: 0.5
+                }
                         orientation: Qt.Vertical
                         height: Kirigami.Units.gridUnit * 4.5
                         color: Kirigami.Theme.highlightColor
