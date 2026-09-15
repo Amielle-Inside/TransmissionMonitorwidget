@@ -165,10 +165,10 @@ PlasmoidItem {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.mediumSpacing
 
-                // App Icon using PlasmaCore.IconItem
-                PlasmaCore.IconItem {
+                // App Icon using Kirigami.Icon
+                Kirigami.Icon {
                     id: appIcon
-                    source: "network-transmit-receive"
+                    name: "network-transmit-receive"
                     Layout.preferredWidth: Kirigami.Units.iconSizes.large
                     Layout.preferredHeight: Kirigami.Units.iconSizes.large
                     color: Kirigami.Theme.highlightColor
