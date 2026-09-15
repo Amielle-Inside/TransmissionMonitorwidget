@@ -178,7 +178,6 @@ PlasmoidItem {
                     id: titleLabel
                     text: root.widgetTitle
                     font: Kirigami.Theme.titleFont
-                    font.bold: true
                     color: Kirigami.Theme.highlightColor
                     elide: Text.ElideRight
                     Layout.fillWidth: true
