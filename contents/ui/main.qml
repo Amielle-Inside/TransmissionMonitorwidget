@@ -152,7 +152,6 @@ PlasmoidItem {
                 opacity: root.backdropOpacity
                 border.color: Kirigami.Theme.highlightColor
                 border.width: 1
-                border.opacity: 0.3
             }
         }
 
