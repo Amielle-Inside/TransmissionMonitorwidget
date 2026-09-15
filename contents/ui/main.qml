@@ -756,6 +756,7 @@ PlasmoidItem {
                 opacity: 0.15
                 visible: true
             }
+            PlasmaComponents3.Frame {
                 Layout.fillWidth: true
                 Layout.preferredHeight: Kirigami.Units.gridUnit * 7
 
