@@ -335,14 +335,12 @@ PlasmoidItem {
             }
 
             // GRAPH SECTION
+            // GRAPH SECTION
             Rectangle {
-                    Layout.fillWidth: true
-                    height: 1
-                    color: Kirigami.Theme.textColor
-                    opacity: 0.15
-                    radius: 0.5
-                }
                 Layout.fillWidth: true
+                height: 1
+                color: Kirigami.Theme.textColor
+                opacity: 0.15
                 visible: root.showGraph
             }
 
@@ -750,15 +748,14 @@ PlasmoidItem {
             // TOTAL ACCUMULATED STATS
             Rectangle {
                     Layout.fillWidth: true
-                    height: 1
-                    color: Kirigami.Theme.textColor
-                    opacity: 0.15
-                    radius: 0.5
-                }
+            // TOTAL ACCUMULATED STATS
+            Rectangle {
                 Layout.fillWidth: true
+                height: 1
+                color: Kirigami.Theme.textColor
+                opacity: 0.15
+                visible: true
             }
-
-            PlasmaComponents3.Frame {
                 Layout.fillWidth: true
                 Layout.preferredHeight: Kirigami.Units.gridUnit * 7
 
