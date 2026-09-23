@@ -63,8 +63,8 @@ function testConnectionScript() {
     return testConnection(
         plasmoid.configuration.trHost || "localhost",
         plasmoid.configuration.trPort || 9091,
-        plasmoid.configuration.trUser || "Amielle",
-        plasmoid.configuration.trPass || "NewsInside@15",
+        plasmoid.configuration.trUser || "",
+        plasmoid.configuration.trPass || "",
         plasmoid.configuration.trRpcPath || "/transmission/rpc"
     );
 }

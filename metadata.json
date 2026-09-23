@@ -7,14 +7,14 @@
                 "Email": ""
             }
         ],
-        "Category": "SystemMonitor",
-        "Description": "Monitor Transmission download/upload speeds and totals from Sonarr/Radarr",
+        "Category": "System Information",
+        "Description": "Monitor Transmission download/upload speeds with Sonarr/Radarr torrent filter",
         "EnabledByDefault": true,
         "Icon": "network-transmit-receive",
         "Id": "org.kde.transmissionmonitor",
         "License": "MIT",
         "Name": "Transmission Monitor",
-        "Version": "1.2.0",
+        "Version": "2.0.0",
         "Website": "https://github.com/Amielle-Inside/TransmissionMonitorwidget"
     },
     "X-Plasma-API": "declarativeappletscript",
@@ -22,7 +22,6 @@
     "X-Plasma-Categories": "system;monitor;network",
     "X-Plasma-DefaultSize": "400,520",
     "X-Plasma-MainScript": "ui/main.qml",
-    "X-Plasma-Provides": "org.kde.transmissionmonitor",
     "X-Plasma-Requires-Config": true,
     "X-Plasma-StandAloneApp": false
 }

@@ -15,7 +15,7 @@
             <default>5000</default>
         </entry>
         <entry name="powerSaveMode" type="Bool">
-            <label>Power Save Mode (fewer updates, no graph animations)</label>
+            <label>Power Save Mode (fewer updates, no graph)</label>
             <default>false</default>
         </entry>
         <entry name="maxTorrentsShown" type="Int">
@@ -50,11 +50,11 @@
         </entry>
         <entry name="trUser" type="String">
             <label>Transmission RPC user</label>
-            <default>Amielle</default>
+            <default></default>
         </entry>
         <entry name="trPass" type="String">
             <label>Transmission RPC password</label>
-            <default>NewsInside@15</default>
+            <default></default>
         </entry>
         <entry name="trRpcPath" type="String">
             <label>Transmission RPC path</label>

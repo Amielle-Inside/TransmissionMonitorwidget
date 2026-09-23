@@ -15,13 +15,16 @@ KCM.SimpleKCM {
     property alias cfg_graphTimespan: graphTimespanSpinBox.value
     property alias cfg_transparency: transparencySpinBox.value
     property alias cfg_themeIndex: themeComboBox.currentIndex
-    property alias cfg_powerSaveMode: powerSaveModeCheckBox.checked
-    property alias cfg_maxTorrentsShown: maxTorrentsShownSpinBox.value
     property alias cfg_trHost: trHostField.text
     property alias cfg_trPort: trPortSpinBox.value
     property alias cfg_trUser: trUserField.text
     property alias cfg_trPass: trPassField.text
     property alias cfg_trRpcPath: trRpcPathField.text
+    property alias cfg_powerSaveMode: powerSaveModeCheckBox.checked
+    property alias cfg_maxTorrentsShown: maxTorrentsShownSpinBox.value
+
+    property string testResultText: ""
+    property color testResultColor: Kirigami.Theme.disabledTextColor
 
     Kirigami.FormLayout {
         anchors.fill: parent
@@ -125,29 +128,6 @@ KCM.SimpleKCM {
             }
         }
 
-        QQC2.CheckBox {
-            id: powerSaveModeCheckBox
-            Kirigami.FormData.label: "Modo Econômico (menos updates, sem gráfico):"
-            checked: false
-
-            Component.onCompleted: {
-                checked = cfg_powerSaveMode !== undefined ? cfg_powerSaveMode : false
-            }
-        }
-
-        QQC2.SpinBox {
-            id: maxTorrentsShownSpinBox
-            Kirigami.FormData.label: "Máx. torrents na lista:"
-            from: 5
-            to: 50
-            value: 15
-            stepSize: 5
-
-            Component.onCompleted: {
-                value = cfg_maxTorrentsShown !== undefined ? cfg_maxTorrentsShown : 15
-            }
-        }
-
         QQC2.Label {
             text: "0 = Tempo Real (sem limite, mostra todo o histórico disponível)\n0.05 a 60.00 min = janela fixa.\nIncrementos de 0.05 min (3 segundos)."
             wrapMode: Text.WordWrap
@@ -183,6 +163,19 @@ KCM.SimpleKCM {
             }
         }
 
+        QQC2.CheckBox {
+            id: powerSaveModeCheckBox
+            Kirigami.FormData.label: "Modo Econômico (4× menos updates, sem gráfico):"
+        }
+
+        QQC2.SpinBox {
+            id: maxTorrentsShownSpinBox
+            Kirigami.FormData.label: "Máx. torrents na lista:"
+            from: 5
+            to: 50
+            stepSize: 5
+        }
+
         // Transmission Connection Section
         Kirigami.Separator {
             Kirigami.FormData.label: "Conexão Transmission RPC"
@@ -216,22 +209,22 @@ KCM.SimpleKCM {
         QQC2.TextField {
             id: trUserField
             Kirigami.FormData.label: "Usuário:"
-            placeholderText: "Amielle"
-            text: "Amielle"
+            placeholderText: "transmission"
+            text: ""
 
             Component.onCompleted: {
-                text = cfg_trUser || "Amielle"
+                text = cfg_trUser || ""
             }
         }
 
         QQC2.TextField {
             id: trPassField
             Kirigami.FormData.label: "Senha:"
-            placeholderText: "NewsInside@15"
+            placeholderText: "sua_senha_aqui"
             echoMode: Text.Password
 
             Component.onCompleted: {
-                text = cfg_trPass || "NewsInside@15"
+                text = cfg_trPass || ""
             }
         }
 
@@ -254,8 +247,23 @@ KCM.SimpleKCM {
             icon.name: "network-connect"
 
             onClicked: {
-                testConnection()
+                var result = testConnection()
+                if (result.success) {
+                    testResultText = "✅ Conectado com sucesso!"
+                    testResultColor = Kirigami.Theme.positiveTextColor
+                } else {
+                    testResultText = "❌ Falhou: " + result.error
+                    testResultColor = Kirigami.Theme.negativeTextColor
+                }
             }
+        }
+
+        QQC2.Label {
+            text: testResultText
+            color: testResultColor
+            visible: testResultText.length > 0
+            wrapMode: Text.WordWrap
+            Layout.fillWidth: true
         }
 
         // Information Section
@@ -283,56 +291,42 @@ KCM.SimpleKCM {
     }
 
     function testConnection() {
-        console.log("Testing Transmission RPC connection...")
         var host = trHostField.text || "localhost"
         var port = trPortSpinBox.value || 9091
-        var user = trUserField.text || "Amielle"
-        var pass = trPassField.text || "NewsInside@15"
+        var user = trUserField.text || ""
+        var pass = trPassField.text || ""
         var rpcPath = trRpcPathField.text || "/transmission/rpc"
         var url = "http://" + host + ":" + port + rpcPath
 
         var xhr = new XMLHttpRequest()
-        xhr.open("POST", url, false)
-        xhr.setRequestHeader("Content-Type", "application/json")
+        var body = JSON.stringify({method: "session-stats", arguments: {}})
+        var auth = user.length > 0 ? "Basic " + Qt.btoa(user + ":" + pass) : ""
 
-        var auth = Qt.btoa(user + ":" + pass)
-        xhr.setRequestHeader("Authorization", "Basic " + auth)
-
-        var body = JSON.stringify({method: "session-get", arguments: {}})
-        xhr.send(body)
-
-        if (xhr.status === 409) {
-            var newSessionId = xhr.getResponseHeader("X-Transmission-Session-Id")
-            if (newSessionId) {
-                xhr.open("POST", url, false)
-                xhr.setRequestHeader("Content-Type", "application/json")
-                xhr.setRequestHeader("Authorization", "Basic " + auth)
-                xhr.setRequestHeader("X-Transmission-Session-Id", newSessionId)
-                xhr.send(body)
-            }
+        function send() {
+            xhr.open("POST", url, false)
+            xhr.setRequestHeader("Content-Type", "application/json")
+            if (auth) xhr.setRequestHeader("Authorization", auth)
+            xhr.send(body)
         }
 
-        if (xhr.status === 200) {
-            try {
-                var response = JSON.parse(xhr.responseText)
-                if (response.result === "success") {
-                    console.log("Connection test SUCCESS:", response)
-                    var dialog = Qt.createQmlObject('import QtQuick 2.15; import org.kde.plasma.components 3.0 as PC3; PC3.MessageDialog { title: "Sucesso"; text: "Conectado ao Transmission RPC em ' + host + ':' + port + '"; standardButtons: PC3.MessageDialog.Ok; onAccepted: destroy() }', page)
-                    dialog.open()
-                } else {
-                    console.error("Connection test failed:", response.result)
-                    var dialog = Qt.createQmlObject('import QtQuick 2.15; import org.kde.plasma.components 3.0 as PC3; PC3.MessageDialog { title: "Falha"; text: "RPC retornou: ' + response.result + '"; standardButtons: PC3.MessageDialog.Ok; onAccepted: destroy() }', page)
-                    dialog.open()
+        try {
+            send()
+            if (xhr.status === 409) {
+                var sid = xhr.getResponseHeader("X-Transmission-Session-Id")
+                if (sid) {
+                    xhr.open("POST", url, false)
+                    xhr.setRequestHeader("Content-Type", "application/json")
+                    if (auth) xhr.setRequestHeader("Authorization", auth)
+                    xhr.setRequestHeader("X-Transmission-Session-Id", sid)
+                    xhr.send(body)
                 }
-            } catch (e) {
-                console.error("Parse error:", e.message)
-                var dialog = Qt.createQmlObject('import QtQuick 2.15; import org.kde.plasma.components 3.0 as PC3; PC3.MessageDialog { title: "Erro"; text: "Resposta inválida: ' + e.message + '"; standardButtons: PC3.MessageDialog.Ok; onAccepted: destroy() }', page)
-                dialog.open()
             }
-        } else {
-            console.error("HTTP error:", xhr.status, xhr.responseText)
-            var dialog = Qt.createQmlObject('import QtQuick 2.15; import org.kde.plasma.components 3.0 as PC3; PC3.MessageDialog { title: "Erro HTTP ' + xhr.status + '"; text: "Não foi possível conectar: ' + xhr.responseText + '"; standardButtons: PC3.MessageDialog.Ok; onAccepted: destroy() }', page)
-            dialog.open()
+            if (xhr.status !== 200) return {success: false, error: "HTTP " + xhr.status}
+            var response = JSON.parse(xhr.responseText)
+            if (response.result !== "success") return {success: false, error: response.result}
+            return {success: true}
+        } catch (e) {
+            return {success: false, error: e.message}
         }
     }
 }
