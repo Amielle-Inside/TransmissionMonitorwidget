@@ -1,5 +1,26 @@
 # Changelog
 
+## v2.0.0 (23 Set 2026)
+
+Redesign de estabilidade + transparência real. Design visual do release inicial (v1.0.3) preservado.
+
+### Correções
+
+- **Transparência não funcionava (HUD cinza/preto)**: o Plasma desenha um fundo padrão (StandardBackground) atrás de todo applet de desktop, que tapava o wallpaper mesmo com o gradiente semi-transparente. Corrigido com `Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground` (sintaxe de propriedade anexada, aplicada no startup do plasmashell) + fallback no `Component.onCompleted`
+- **Testar Conexão quebrado no Plasma 6**: `MessageDialog` via `createQmlObject` não funciona mais. Reescrito com feedback inline (✅/❌) direto na UI de config, com retry do `X-Transmission-Session-Id` (409)
+- **Config UI corrompia bindings**: `Component.onCompleted` que sobrescrevia campos `cfg_*` removido
+
+### Novas funcionalidades
+
+- **Modo Econômico**: 4× menos updates, sem gráfico (para economizar CPU/bateria)
+- **Máx. torrents na lista**: limita a lista de 5 a 50 itens (padrão 15)
+
+### Limpeza
+
+- Removidas credenciais hardcoded do source (agora só via configuração do widget)
+- Removidos artefatos .zip/.plasmoid antigos do repo
+- metadata.json/desktop padronizados (KPackageStructure, versão 2.0.0)
+
 ## v1.0.3 (31 Jul 2026) — Final Release
 
 Versao final com correcoes de renderizacao do Canvas, estatisticas de sessao e totais acumulados.
