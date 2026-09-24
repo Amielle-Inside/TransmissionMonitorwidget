@@ -97,7 +97,11 @@ Após adicionar o widget ao desktop ou painel:
 | **Título do Widget** | Nome exibido no header | `Transmission Monitor` |
 | **Mostrar gráfico** | Exibir/ocultar o gráfico de velocidade | `true` |
 | **Tempospan do gráfico** | Janela de tempo em minutos (0 = tempo real) | `5` |
-| **Tema** | `Padrão (Escuro)` ou gradiente synthwave | `Padrão (Escuro)` |
+| **Tema** | `Synthwave`, `Leve`, `Cyberpunk 2077`, `Matrix`, `AMOLED`, `Personalizado` | `Synthwave` |
+| **Tamanho da Fonte** | Escala global da fonte | `100%` |
+| **Espessura da Borda** | Borda dos cards (px) | `1` |
+| **Raio dos Cantos** | Cantos arredondados (px) | `12` |
+| **Cores Personalizadas** | 10 cores editáveis (fundo, acentos, texto...) — só no tema Personalizado | *(defaults synthwave)* |
 | **Transparência** | Opacidade do fundo (0–100%) | `0%` |
 | **Modo Econômico** | 4× menos updates, sem gráfico | `off` |
 | **Máx. torrents na lista** | Limite de itens na lista (5–50) | `15` |
