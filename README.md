@@ -22,15 +22,39 @@ Todo o código fonte, estrutura do plasmoid, lógica de RPC, Canvas do gráfico,
 
 ## Funcionalidades
 
-- **Cards de velocidade em tempo real** — Download, Upload (B/s, KB/s, MB/s auto-formatado)
-- **Gráfico de velocidade ao vivo** — Linhas de download/upload com fill, grid e eixos rotulados
+### Monitoramento
+- **Cards de velocidade em tempo real** — Download, Upload, Ativos (B/s, KB/s, MB/s auto-formatado)
+- **Gráfico de velocidade ao vivo** — Linhas de download/upload com fill, grid e eixos rotulados, janela configurável (minutos ou tempo real)
 - **Lista de torrents filtrada** — Mostra apenas torrents marcados como `sonarr` ou `radarr` no Transmission
 - **Status individual** — Progresso (%), velocidades, ETA, peers, status (Enfileirado, Baixando, Semeando, Pausado)
-- **Estatísticas de sessão** — Total de download/upload desde o início da sessão atual do Transmission
+- **Estatísticas de sessão** — Total de download/upload desde o início da sessão atual
 - **Estatísticas acumuladas** — Total de download/upload de toda a vida do Transmission
-- **Botão de teste de conexão** — Valida as credenciais RPC antes de salvar
-- **Configuração persistente** — Host, porta, usuário, senha, caminho RPC, intervalo de atualização, título do widget, e vezespan do gráfico são salvos via KConfigXT
-- **Tema escuro customizado** — Cores neon (cyan + rosa) sobre fundo charcoal, independente do tema do Plasma
+- **Representação compacta** — No painel, mostra ▼/▲ velocidades em formato reduzido
+- **Tooltip** — Velocidades atuais ao passar o mouse
+
+### Temas & Personalização (v2.1.0)
+- **6 temas**: Synthwave (padrão), Leve (transparente), **Cyberpunk 2077**, **Matrix**, **AMOLED** e **Personalizado**
+- **Tema Personalizado** — 10 cores editáveis via hex com preview ao vivo: fundo (topo/base), 2 acentos, download, upload, texto, texto suave, alerta, crítico
+- **Tamanho da fonte** — Escala global 80–140%
+- **Espessura da borda** (0–4px) e **raio dos cantos** (0–24px)
+- **Transparência real** — 0–100%, o fundo mistura direto no wallpaper (HUD do Plasma removido via `NoBackground`)
+
+### Conectividade & Configuração
+- **Botão de teste de conexão** — Valida credenciais RPC com feedback inline ✅/❌ (retry automático de session-id 409)
+- **Modo Econômico** — 4× menos updates, sem gráfico (economia de CPU/bateria)
+- **Máx. torrents na lista** — Limita a lista de 5 a 50 itens
+- **Configuração persistente** — Tudo salvo via KConfigXT
+- **Versão dinâmica** — O campo Versão na config lê direto do metadata
+
+### Screenshots
+
+| Synthwave (padrão) | Cyberpunk 2077 |
+|---|---|
+| ![Synthwave](docs/screenshot-synthwave.png) | ![Cyberpunk](docs/screenshot-cyberpunk.png) |
+
+| Matrix | AMOLED |
+|---|---|
+| ![Matrix](docs/screenshot-matrix.png) | ![AMOLED](docs/screenshot-amoled.png) |
 
 ---
 
