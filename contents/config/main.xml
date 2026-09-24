@@ -36,6 +36,48 @@
             <label>Widget transparency 0-100</label>
             <default>0</default>
         </entry>
+        <entry name="fontScale" type="Int">
+            <default>100</default>
+            <label>Escala de fonte (80-140%)</label>
+        </entry>
+        <entry name="borderWidth" type="Int">
+            <default>1</default>
+            <label>Espessura da borda (0-4)</label>
+        </entry>
+        <entry name="cornerRadius" type="Int">
+            <default>12</default>
+            <label>Raio dos cantos (0-24)</label>
+        </entry>
+        <entry name="customBgStart" type="String">
+            <default>#2a1b3d</default>
+        </entry>
+        <entry name="customBgEnd" type="String">
+            <default>#1a0b2e</default>
+        </entry>
+        <entry name="customAccent" type="String">
+            <default>#00e8ff</default>
+        </entry>
+        <entry name="customAccent2" type="String">
+            <default>#ff75da</default>
+        </entry>
+        <entry name="customDownload" type="String">
+            <default>#3daee9</default>
+        </entry>
+        <entry name="customUpload" type="String">
+            <default>#f05050</default>
+        </entry>
+        <entry name="customText" type="String">
+            <default>#ffffff</default>
+        </entry>
+        <entry name="customTextMuted" type="String">
+            <default>#a89fbb</default>
+        </entry>
+        <entry name="customWarning" type="String">
+            <default>#ffb84d</default>
+        </entry>
+        <entry name="customCritical" type="String">
+            <default>#ff4757</default>
+        </entry>
         <entry name="themeIndex" type="Int">
             <label>Theme index</label>
             <default>0</default>

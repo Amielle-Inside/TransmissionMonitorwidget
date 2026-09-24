@@ -48,18 +48,66 @@ PlasmoidItem {
     // from root scope (IDs inside fullRepresentation are NOT visible from root JS)
     property int paintTick: 0
 
-    // Colors
-    property color colorBgStart: "#2a1b3d"
-    property color colorBgEnd: "#1a0b2e"
-    property color colorAccentCyan: "#00e8ff"
-    property color colorAccentPurple: "#a05bff"
-    property color colorAccentPink: "#ff75da"
-    property color colorDownload: "#3daee9"
-    property color colorUpload: "#f05050"
-    property color colorWarning: "#ffb84d"
-    property color colorCritical: "#ff4757"
-    property color colorTextMuted: "#a89fbb"
-    property color colorText: "#ffffff"
+    // ==================== THEME ENGINE ====================
+    // themeIndex: 0=Synthwave 1=Leve/Transparente 2=Cyberpunk 2077 3=Matrix 4=AMOLED 5=Personalizado
+    readonly property var themes: ({
+        0: { bgStart: "#2a1b3d", bgEnd: "#1a0b2e", accent: "#00e8ff", accent2: "#ff75da", accent3: "#a05bff",
+             down: "#3daee9", up: "#f05050", text: "#ffffff", muted: "#a89fbb", warn: "#ffb84d", crit: "#ff4757",
+             border: 1, radius: root.themedRadius },
+        1: { bgStart: "#2a1b3d", bgEnd: "#1a0b2e", accent: "#00e8ff", accent2: "#ff75da", accent3: "#a05bff",
+             down: "#3daee9", up: "#f05050", text: "#ffffff", muted: "#a89fbb", warn: "#ffb84d", crit: "#ff4757",
+             border: 0, radius: root.themedRadius, transparentCards: true },
+        2: { bgStart: "#1a0e1f", bgEnd: "#0d0610", accent: "#fcee0a", accent2: "#ff003c", accent3: "#00f0ff",
+             down: "#00f0ff", up: "#ff003c", text: "#f5f5dc", muted: "#9c8fa3", warn: "#fcee0a", crit: "#ff003c",
+             border: 2, radius: 2 },
+        3: { bgStart: "#001500", bgEnd: "#000800", accent: "#00ff41", accent2: "#00cc33", accent3: "#008f2b",
+             down: "#00ff41", up: "#66ff99", text: "#00ff41", muted: "#00a828", warn: "#d4ff00", crit: "#ff3333",
+             border: 1, radius: 0 },
+        4: { bgStart: "#000000", bgEnd: "#000000", accent: "#ffffff", accent2: "#b3b3b3", accent3: "#666666",
+             down: "#e6e6e6", up: "#999999", text: "#ffffff", muted: "#888888", warn: "#cccccc", crit: "#ffffff",
+             border: 1, radius: 16 },
+        5: null  // custom — resolved from configuration
+    })
+    property var activeTheme: {
+        if (themeIndex === 5) {
+            return {
+                bgStart: plasmoid.configuration.customBgStart || "#2a1b3d",
+                bgEnd: plasmoid.configuration.customBgEnd || "#1a0b2e",
+                accent: plasmoid.configuration.customAccent || "#00e8ff",
+                accent2: plasmoid.configuration.customAccent2 || "#ff75da",
+                accent3: plasmoid.configuration.customAccent || "#00e8ff",
+                down: plasmoid.configuration.customDownload || "#3daee9",
+                up: plasmoid.configuration.customUpload || "#f05050",
+                text: plasmoid.configuration.customText || "#ffffff",
+                muted: plasmoid.configuration.customTextMuted || "#a89fbb",
+                warn: plasmoid.configuration.customWarning || "#ffb84d",
+                crit: plasmoid.configuration.customCritical || "#ff4757",
+                border: Math.max(0, Math.min(4, plasmoid.configuration.borderWidth !== undefined ? plasmoid.configuration.borderWidth : 1)),
+                radius: Math.max(0, Math.min(24, plasmoid.configuration.cornerRadius !== undefined ? plasmoid.configuration.cornerRadius : 12))
+            }
+        }
+        return themes[themeIndex] || themes[0]
+    }
+
+    // Colors (resolved from theme — custom* configs override when themeIndex=5)
+    property color colorBgStart: activeTheme.bgStart
+    property color colorBgEnd: activeTheme.bgEnd
+    property color colorAccentCyan: activeTheme.accent
+    property color colorAccentPink: activeTheme.accent2
+    property color colorAccentPurple: activeTheme.accent3
+    property color colorDownload: activeTheme.down
+    property color colorUpload: activeTheme.up
+    property color colorWarning: activeTheme.warn
+    property color colorCritical: activeTheme.crit
+    property color colorTextMuted: activeTheme.muted
+    property color colorText: activeTheme.text
+
+    // Typography scale (all font.pixelSize values use fs(n))
+    property real fontScaleF: Math.max(0.8, Math.min(1.4, (plasmoid.configuration.fontScale !== undefined ? plasmoid.configuration.fontScale : 100) / 100.0))
+    function fs(base) { return Math.round(base * root.fontScaleF) }
+
+    property int themedBorderWidth: activeTheme.border
+    property int themedRadius: activeTheme.radius
 
     property real backdropOpacity: transparency / 100.0 * 0.9 + 0.1
 
@@ -87,7 +135,7 @@ PlasmoidItem {
             Text {
                 id: compactDlText
                 text: root.hasData ? "▼ " + formatSpeed(root.sessionStats.downloadSpeed || 0) : "▼ --"
-                font.pixelSize: 11
+                font.pixelSize: fs(11)
                 font.family: "JetBrains Mono, Noto Sans Mono, monospace"
                 font.bold: true
                 color: root.colorDownload
@@ -96,7 +144,7 @@ PlasmoidItem {
 
             Text {
                 text: "│"
-                font.pixelSize: 11
+                font.pixelSize: fs(11)
                 color: root.colorTextMuted
                 verticalAlignment: Text.AlignVCenter
             }
@@ -104,7 +152,7 @@ PlasmoidItem {
             Text {
                 id: compactUlText
                 text: root.hasData ? "▲ " + formatSpeed(root.sessionStats.uploadSpeed || 0) : "▲ --"
-                font.pixelSize: 11
+                font.pixelSize: fs(11)
                 font.family: "JetBrains Mono, Noto Sans Mono, monospace"
                 font.bold: true
                 color: root.colorUpload
@@ -144,7 +192,7 @@ PlasmoidItem {
                 GradientStop { position: 1.0; color: root.colorBgEnd }
             }
             border.color: Qt.rgba(root.colorAccentPink.r, root.colorAccentPink.g, root.colorAccentPink.b, 0.3)
-            border.width: 1
+            border.width: root.themedBorderWidth
             opacity: root.backdropOpacity
         }
 
@@ -199,7 +247,7 @@ PlasmoidItem {
 
                 PlasmaComponents3.Label {
                     text: root.widgetTitle
-                    font.pixelSize: 20
+                    font.pixelSize: fs(20)
                     font.bold: true
                     font.family: "Inter, Noto Sans, sans-serif"
                     color: root.colorAccentPink
@@ -211,8 +259,8 @@ PlasmoidItem {
                     color: root.connected ? Qt.rgba(root.colorAccentCyan.r, root.colorAccentCyan.g, root.colorAccentCyan.b, 0.15)
                                        : Qt.rgba(root.colorCritical.r, root.colorCritical.g, root.colorCritical.b, 0.15)
                     border.color: root.connected ? root.colorAccentCyan : root.colorCritical
-                    border.width: 1
-                    radius: 12
+                    border.width: root.themedBorderWidth
+                    radius: root.themedRadius
                     Layout.preferredWidth: statusText.width + 24
                     Layout.preferredHeight: 28
 
@@ -220,7 +268,7 @@ PlasmoidItem {
                         id: statusText
                         anchors.centerIn: parent
                         text: root.connected ? "Conectado" : "Desconectado"
-                        font.pixelSize: 12
+                        font.pixelSize: fs(12)
                         font.bold: true
                         color: root.connected ? root.colorAccentCyan : root.colorCritical
                     }
@@ -242,7 +290,7 @@ PlasmoidItem {
                         radius: 8
                         color: Qt.rgba(0, 0, 0, 0.25)
                         border.color: Qt.rgba(root.colorDownload.r, root.colorDownload.g, root.colorDownload.b, 0.4)
-                        border.width: 1
+                        border.width: root.themedBorderWidth
                     }
 
                     Column {
@@ -251,7 +299,7 @@ PlasmoidItem {
 
                         Text {
                             text: "⬇ Download"
-                            font.pixelSize: 11
+                            font.pixelSize: fs(11)
                             color: root.colorTextMuted
                             anchors.horizontalCenter: parent.horizontalCenter
                         }
@@ -259,7 +307,7 @@ PlasmoidItem {
                             id: dlSpeedText
                             text: root.hasData ? formatSpeed(root.sessionStats.downloadSpeed || 0) : "-- B/s"
                             font.bold: true
-                            font.pixelSize: 16
+                            font.pixelSize: fs(16)
                             font.family: "JetBrains Mono, Noto Sans Mono, monospace"
                             color: root.colorDownload
                             anchors.horizontalCenter: parent.horizontalCenter
@@ -267,7 +315,7 @@ PlasmoidItem {
                         Text {
                             id: dlSessionText
                             text: "Sessão: " + formatBytes(root.sessionStats["current-stats"] ? (root.sessionStats["current-stats"].downloadedBytes || 0) : 0)
-                            font.pixelSize: 10
+                            font.pixelSize: fs(10)
                             color: root.colorTextMuted
                             anchors.horizontalCenter: parent.horizontalCenter
                         }
@@ -284,7 +332,7 @@ PlasmoidItem {
                         radius: 8
                         color: Qt.rgba(0, 0, 0, 0.25)
                         border.color: Qt.rgba(root.colorUpload.r, root.colorUpload.g, root.colorUpload.b, 0.4)
-                        border.width: 1
+                        border.width: root.themedBorderWidth
                     }
 
                     Column {
@@ -293,7 +341,7 @@ PlasmoidItem {
 
                         Text {
                             text: "⬆ Upload"
-                            font.pixelSize: 11
+                            font.pixelSize: fs(11)
                             color: root.colorTextMuted
                             anchors.horizontalCenter: parent.horizontalCenter
                         }
@@ -301,7 +349,7 @@ PlasmoidItem {
                             id: ulSpeedText
                             text: root.hasData ? formatSpeed(root.sessionStats.uploadSpeed || 0) : "-- B/s"
                             font.bold: true
-                            font.pixelSize: 16
+                            font.pixelSize: fs(16)
                             font.family: "JetBrains Mono, Noto Sans Mono, monospace"
                             color: root.colorUpload
                             anchors.horizontalCenter: parent.horizontalCenter
@@ -309,7 +357,7 @@ PlasmoidItem {
                         Text {
                             id: ulSessionText
                             text: "Sessão: " + formatBytes(root.sessionStats["current-stats"] ? (root.sessionStats["current-stats"].uploadedBytes || 0) : 0)
-                            font.pixelSize: 10
+                            font.pixelSize: fs(10)
                             color: root.colorTextMuted
                             anchors.horizontalCenter: parent.horizontalCenter
                         }
@@ -326,7 +374,7 @@ PlasmoidItem {
                         radius: 8
                         color: Qt.rgba(0, 0, 0, 0.25)
                         border.color: Qt.rgba(root.colorAccentPurple.r, root.colorAccentPurple.g, root.colorAccentPurple.b, 0.4)
-                        border.width: 1
+                        border.width: root.themedBorderWidth
                     }
 
                     Column {
@@ -335,7 +383,7 @@ PlasmoidItem {
 
                         Text {
                             text: "📦 Ativos"
-                            font.pixelSize: 11
+                            font.pixelSize: fs(11)
                             color: root.colorTextMuted
                             anchors.horizontalCenter: parent.horizontalCenter
                         }
@@ -343,13 +391,13 @@ PlasmoidItem {
                             id: activeCountText
                             text: root.torrents ? root.torrents.length : "0"
                             font.bold: true
-                            font.pixelSize: 22
+                            font.pixelSize: fs(22)
                             color: root.colorText
                             anchors.horizontalCenter: parent.horizontalCenter
                         }
                         Text {
                             text: "torrents"
-                            font.pixelSize: 10
+                            font.pixelSize: fs(10)
                             color: root.colorTextMuted
                             anchors.horizontalCenter: parent.horizontalCenter
                         }
@@ -367,10 +415,10 @@ PlasmoidItem {
 
                 Rectangle {
                     anchors.fill: parent
-                    radius: 12
-                    color: root.themeIndex === 1 ? "transparent" : Qt.rgba(0, 0, 0, 0.2)
+                    radius: root.themedRadius
+                    color: root.activeTheme.transparentCards === true ? "transparent" : Qt.rgba(0, 0, 0, 0.2)
                     border.color: Qt.rgba(root.colorAccentPurple.r, root.colorAccentPurple.g, root.colorAccentPurple.b, 0.4)
-                    border.width: root.themeIndex === 1 ? 0 : 1
+                    border.width: root.activeTheme.transparentCards === true ? 0 : root.themedBorderWidth
                 }
 
                 ColumnLayout {
@@ -384,7 +432,7 @@ PlasmoidItem {
 
                         Text {
                             text: root.graphTimespan === 0 ? "Velocidade (Tempo Real)" : "Velocidade (" + root.graphTimespan.toFixed(2) + " min)"
-                            font.pixelSize: 14
+                            font.pixelSize: fs(14)
                             font.bold: true
                             color: root.colorAccentPurple
                             Layout.fillWidth: true
@@ -397,14 +445,14 @@ PlasmoidItem {
 
                             Text {
                                 text: "▼"
-                                font.pixelSize: 12
+                                font.pixelSize: fs(12)
                                 color: root.colorDownload
                                 anchors.verticalCenter: parent.verticalCenter
                             }
                             Text {
                                 id: dlSpeedLabel
                                 text: root.hasData ? formatSpeed(root.sessionStats.downloadSpeed || 0) : "-- B/s"
-                                font.pixelSize: 12
+                                font.pixelSize: fs(12)
                                 font.bold: true
                                 font.family: "JetBrains Mono, Noto Sans Mono, monospace"
                                 color: root.colorDownload
@@ -412,14 +460,14 @@ PlasmoidItem {
                             }
                             Text {
                                 text: "▲"
-                                font.pixelSize: 12
+                                font.pixelSize: fs(12)
                                 color: root.colorUpload
                                 anchors.verticalCenter: parent.verticalCenter
                             }
                             Text {
                                 id: ulSpeedLabel
                                 text: root.hasData ? formatSpeed(root.sessionStats.uploadSpeed || 0) : "-- B/s"
-                                font.pixelSize: 12
+                                font.pixelSize: fs(12)
                                 font.bold: true
                                 font.family: "JetBrains Mono, Noto Sans Mono, monospace"
                                 color: root.colorUpload
@@ -449,7 +497,7 @@ PlasmoidItem {
                                         var maxSpeed = getMaxSpeed()
                                         return formatSpeed(maxSpeed - index * (maxSpeed / 5))
                                     }
-                                    font.pixelSize: 10
+                                    font.pixelSize: fs(10)
                                     font.bold: true
                                     y: (parent.height / 5) * index - height/2
                                     anchors.right: parent.right
@@ -634,7 +682,7 @@ PlasmoidItem {
                                             var d = new Date(t)
                                             return d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0')
                                         }
-                                        font.pixelSize: 9
+                                        font.pixelSize: fs(9)
                                         color: root.colorTextMuted
                                         x: (parent.width / 4) * index - width / 2
                                         anchors.bottom: parent.bottom
@@ -651,7 +699,7 @@ PlasmoidItem {
                 Layout.fillWidth: true
                 text: "Torrents Sonarr/Radarr"
                 font.bold: true
-                font.pixelSize: 13
+                font.pixelSize: fs(13)
                 color: root.colorText
             }
 
@@ -696,7 +744,7 @@ PlasmoidItem {
 
                             Text {
                                 text: modelData.name
-                                font.pixelSize: 12
+                                font.pixelSize: fs(12)
                                 font.bold: true
                                 color: root.colorText
                                 width: parent.width - statusTextLabel.width - 8
@@ -705,7 +753,7 @@ PlasmoidItem {
                             Text {
                                 id: statusTextLabel
                                 text: modelData.status
-                                font.pixelSize: 10
+                                font.pixelSize: fs(10)
                                 color: {
                                     var s = modelData.status
                                     if (s.includes("Baixando")) return root.colorDownload
@@ -725,22 +773,22 @@ PlasmoidItem {
 
                             Text {
                                 text: modelData.progress + "%"
-                                font.pixelSize: 10
+                                font.pixelSize: fs(10)
                                 color: root.colorDownload
                             }
                             Text {
                                 text: "⬇ " + modelData.downSpeed
-                                font.pixelSize: 10
+                                font.pixelSize: fs(10)
                                 color: root.colorDownload
                             }
                             Text {
                                 text: "⬆ " + modelData.upSpeed
-                                font.pixelSize: 10
+                                font.pixelSize: fs(10)
                                 color: root.colorUpload
                             }
                             Text {
                                 text: "ETA: " + modelData.eta
-                                font.pixelSize: 10
+                                font.pixelSize: fs(10)
                                 color: root.colorTextMuted
                                 elide: Text.ElideRight
                                 Layout.fillWidth: true
@@ -749,7 +797,7 @@ PlasmoidItem {
                             Text {
                                 id: peersText
                                 text: "👥 " + modelData.peers
-                                font.pixelSize: 10
+                                font.pixelSize: fs(10)
                                 color: root.colorTextMuted
                             }
                         }
@@ -764,7 +812,7 @@ PlasmoidItem {
                 radius: 8
                 color: Qt.rgba(0, 0, 0, 0.25)
                 border.color: Qt.rgba(root.colorAccentPurple.r, root.colorAccentPurple.g, root.colorAccentPurple.b, 0.3)
-                border.width: 1
+                border.width: root.themedBorderWidth
 
                 Row {
                     anchors.centerIn: parent
@@ -775,13 +823,13 @@ PlasmoidItem {
 
                         Text {
                             text: "⬇ Total"
-                            font.pixelSize: 10
+                            font.pixelSize: fs(10)
                             color: root.colorTextMuted
                             anchors.horizontalCenter: parent.horizontalCenter
                         }
                         Text {
                             text: root.hasData ? formatBytes(root.sessionStats["cumulative-stats"] ? (root.sessionStats["cumulative-stats"].downloadedBytes || 0) : 0) : "--"
-                            font.pixelSize: 14
+                            font.pixelSize: fs(14)
                             font.bold: true
                             font.family: "JetBrains Mono, Noto Sans Mono, monospace"
                             color: root.colorDownload
@@ -801,13 +849,13 @@ PlasmoidItem {
 
                         Text {
                             text: "⬆ Total"
-                            font.pixelSize: 10
+                            font.pixelSize: fs(10)
                             color: root.colorTextMuted
                             anchors.horizontalCenter: parent.horizontalCenter
                         }
                         Text {
                             text: root.hasData ? formatBytes(root.sessionStats["cumulative-stats"] ? (root.sessionStats["cumulative-stats"].uploadedBytes || 0) : 0) : "--"
-                            font.pixelSize: 14
+                            font.pixelSize: fs(14)
                             font.bold: true
                             font.family: "JetBrains Mono, Noto Sans Mono, monospace"
                             color: root.colorUpload

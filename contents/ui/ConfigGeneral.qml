@@ -22,6 +22,14 @@ KCM.SimpleKCM {
     property alias cfg_trRpcPath: trRpcPathField.text
     property alias cfg_powerSaveMode: powerSaveModeCheckBox.checked
     property alias cfg_maxTorrentsShown: maxTorrentsShownSpinBox.value
+    property alias cfg_fontScale: fontScaleSpin.value
+    property alias cfg_borderWidth: borderWidthSpin.value
+    property alias cfg_cornerRadius: cornerRadiusSpin.value
+
+    function cfgSetValue(key, value) {
+        plasmoid.configuration[key] = value
+    }
+
 
     property string testResultText: ""
     property color testResultColor: Kirigami.Theme.disabledTextColor
@@ -49,11 +57,45 @@ KCM.SimpleKCM {
         QQC2.ComboBox {
             id: themeComboBox
             Kirigami.FormData.label: "Tema do Widget:"
-            model: ["Padrão (Escuro)", "Leve (Transparente)"]
+            model: ["Synthwave (Padrão)", "Leve (Transparente)", "Cyberpunk 2077", "Matrix", "AMOLED", "Personalizado"]
+            currentIndex: cfg_themeIndex !== undefined ? cfg_themeIndex : 0
+            onActivated: (index) => { cfg_themeIndex = index }
 
-            Component.onCompleted: {
-                currentIndex = cfg_themeIndex !== undefined ? cfg_themeIndex : 0
+            // mantém sincronizado se mudar por fora
+            onCurrentIndexChanged: {
+                if (currentIndex !== cfg_themeIndex) cfg_themeIndex = currentIndex
             }
+        }
+
+        QQC2.SpinBox {
+            id: fontScaleSpin
+            Kirigami.FormData.label: "Tamanho da Fonte (%):"
+            from: 80
+            to: 140
+            stepSize: 5
+            value: cfg_fontScale !== undefined ? cfg_fontScale : 100
+            onValueModified: cfg_fontScale = value
+            textFromValue: function(value, locale) { return value + "%" }
+            editable: true
+        }
+
+        QQC2.SpinBox {
+            id: borderWidthSpin
+            Kirigami.FormData.label: "Espessura da Borda (px):"
+            from: 0
+            to: 4
+            value: cfg_borderWidth !== undefined ? cfg_borderWidth : 1
+            onValueModified: cfg_borderWidth = value
+        }
+
+        QQC2.SpinBox {
+            id: cornerRadiusSpin
+            Kirigami.FormData.label: "Raio dos Cantos (px):"
+            from: 0
+            to: 24
+            stepSize: 2
+            value: cfg_cornerRadius !== undefined ? cfg_cornerRadius : 12
+            onValueModified: cfg_cornerRadius = value
         }
 
         QQC2.SpinBox {
@@ -176,6 +218,75 @@ KCM.SimpleKCM {
             stepSize: 5
         }
 
+
+        // ==== Cores Personalizadas (visível só no tema Personalizado) ====
+        Kirigami.Heading {
+            level: 3
+            text: "Cores Personalizadas (tema Personalizado)"
+            visible: (cfg_themeIndex !== undefined ? cfg_themeIndex : 0) === 5
+            Layout.fillWidth: true
+            type: Kirigami.Heading.Type.Normal
+        }
+
+        Flow {
+            visible: (cfg_themeIndex !== undefined ? cfg_themeIndex : 0) === 5
+            Layout.fillWidth: true
+            spacing: Kirigami.Units.smallSpacing
+
+            Repeater {
+                model: [
+                    { key: "customBgStart", label: "Fundo (topo)", def: "#2a1b3d" },
+                    { key: "customBgEnd", label: "Fundo (base)", def: "#1a0b2e" },
+                    { key: "customAccent", label: "Acento 1", def: "#00e8ff" },
+                    { key: "customAccent2", label: "Acento 2", def: "#ff75da" },
+                    { key: "customDownload", label: "Download", def: "#3daee9" },
+                    { key: "customUpload", label: "Upload", def: "#f05050" },
+                    { key: "customText", label: "Texto", def: "#ffffff" },
+                    { key: "customTextMuted", label: "Texto suave", def: "#a89fbb" },
+                    { key: "customWarning", label: "Alerta", def: "#ffb84d" },
+                    { key: "customCritical", label: "Crítico", def: "#ff4757" }
+                ]
+                delegate: ColumnLayout {
+                    spacing: 2
+                    QQC2.Label {
+                        text: modelData.label
+                        font.pixelSize: 10
+                        color: Kirigami.Theme.disabledTextColor
+                    }
+                    RowLayout {
+                        spacing: 4
+                        Rectangle {
+                            width: 22; height: 22
+                            radius: 4
+                            color: {
+                                var v = plasmoid.configuration[modelData.key]
+                                return /^#[0-9a-fA-F]{6}$/.test(v || "") ? v : modelData.def
+                            }
+                            border.width: 1
+                            border.color: Kirigami.Theme.textColor
+                        }
+                        QQC2.TextField {
+                            id: hexInput
+                            Layout.preferredWidth: 82
+                            font.family: "monospace"
+                            text: {
+                                var v = plasmoid.configuration[modelData.key]
+                                return /^#[0-9a-fA-F]{6}$/.test(v || "") ? v : modelData.def
+                            }
+                            onEditingFinished: {
+                                var t = text.trim()
+                                if (/^#[0-9a-fA-F]{6}$/.test(t)) {
+                                    // escreve via alias dinâmico
+                                    cfgSetValue(modelData.key, t.toLowerCase())
+                                } else {
+                                    text = plasmoid.configuration[modelData.key] || modelData.def
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         // Transmission Connection Section
         Kirigami.Separator {
             Kirigami.FormData.label: "Conexão Transmission RPC"
