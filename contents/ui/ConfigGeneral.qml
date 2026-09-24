@@ -274,7 +274,7 @@ KCM.SimpleKCM {
 
         QQC2.Label {
             Kirigami.FormData.label: "Versão:"
-            text: "1.1"
+            text: plasmoid.metaData.Version
         }
 
         QQC2.Label {

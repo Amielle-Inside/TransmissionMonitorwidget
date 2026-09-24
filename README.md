@@ -51,39 +51,30 @@ Todo o código fonte, estrutura do plasmoid, lógica de RPC, Canvas do gráfico,
 
 ## Instalação
 
-### Método 1: Instalar via arquivo (recomendado)
+### Método 1: Instalar via terminal (recomendado — uma linha)
 
-1. Baixe o arquivo `transmission-monitor.plasmoid` (ou `.zip`) da página de [Releases](../../releases)
-2. No KDE Plasma, clique com o botão direito no desktop ou painel → **Adicionar Widgets** → **⋮** → **Instalar do arquivo**
-3. Selecione o arquivo baixado
-4. O widget aparecerá na lista de widgets disponíveis
-
-### Método 2: Instalação manual
+Baixa e instala a versão mais recente direto da última release, sem clone:
 
 ```bash
-# 1. Clone o repositório
-git clone https://github.com/Amielle-Inside/TransmissionMonitorwidget.git
-cd transmission-monitor
-
-# 2. Copie a estrutura para o diretório de plasmoids do usuário
-mkdir -p ~/.local/share/plasma/plasmoids/org.kde.transmissionmonitor
-cp -r * ~/.local/share/plasma/plasmoids/org.kde.transmissionmonitor/
-
-# 3. Reconstrua o cache do sistema (obrigatório)
-kbuildsycoca6 --noincremental
-
-# 4. Reinicie o Plasma (um dos dois)
-# Opção A — via systemctl:
-systemctl --user restart plasma-plasmashell.service
-# Opção B — logout e login
+curl -fsSL https://github.com/Amielle-Inside/TransmissionMonitorwidget/releases/latest/download/transmission-monitor.plasmoid -o /tmp/transmission-monitor.plasmoid && kpackagetool6 --type Plasma/Applet --upgrade /tmp/transmission-monitor.plasmoid 2>/dev/null || kpackagetool6 --type Plasma/Applet --install /tmp/transmission-monitor.plasmoid; kbuildsycoca6 --noincremental; systemctl --user restart plasma-plasmashell.service
 ```
 
-### Método 3: Instalar via kpackagetool6
+> **Nota:** o restart do plasmashell é necessário para a transparência do fundo aplicar (Plasma só lê `backgroundHints` no startup).
+
+### Método 2: Instalar via interface gráfica
+
+1. Baixe o arquivo `transmission-monitor.plasmoid` da página de [Releases](../../releases)
+2. No KDE Plasma, clique com o botão direito no desktop ou painel → **Adicionar Widgets** → **⋮** → **Instalar do arquivo**
+3. Selecione o arquivo baixado
+4. Reinicie o Plasma: `systemctl --user restart plasma-plasmashell.service`
+
+### Método 3: Instalar a partir do source (developers)
 
 ```bash
 git clone https://github.com/Amielle-Inside/TransmissionMonitorwidget.git
-cd transmission-monitor
-kpackagetool6 --type Plasma/Applet --install .
+cd TransmissionMonitorwidget
+kpackagetool6 --type Plasma/Applet --install . && kbuildsycoca6 --noincremental
+systemctl --user restart plasma-plasmashell.service
 ```
 
 ---
@@ -102,12 +93,16 @@ Após adicionar o widget ao desktop ou painel:
 | **Usuário** | Usuário RPC (deixe vazio se não usar auth) | *(vazio)* |
 | **Senha** | Senha RPC (deixe vazio se não usar auth) | *(vazio)* |
 | **Caminho RPC** | Path do endpoint RPC | `/transmission/rpc` |
-| **Intervalo** | Frequência de atualização (ms) | `2000` |
-| **Título do Widget** | Nome exibido no header | `Arr Stack` |
+| **Intervalo** | Frequência de atualização (ms) | `5000` |
+| **Título do Widget** | Nome exibido no header | `Transmission Monitor` |
 | **Mostrar gráfico** | Exibir/ocultar o gráfico de velocidade | `true` |
-| **Tempospan do gráfico** | Janela de tempo em minutos (0 = tempo real) | `0` |
+| **Tempospan do gráfico** | Janela de tempo em minutos (0 = tempo real) | `5` |
+| **Tema** | `Padrão (Escuro)` ou gradiente synthwave | `Padrão (Escuro)` |
+| **Transparência** | Opacidade do fundo (0–100%) | `0%` |
+| **Modo Econômico** | 4× menos updates, sem gráfico | `off` |
+| **Máx. torrents na lista** | Limite de itens na lista (5–50) | `15` |
 
-3. Clique em **Testar Conexão** — se mostrar , está pronto
+3. Clique em **Testar Conexão** — se mostrar ✅, está pronto
 4. Clique em **OK**
 
 >  **Dica:** Para que o filtro funcione, seus torrents do Sonarr/Radarr precisam estar marcados com as categorias `sonarr` ou `radarr` no Transmission. O Sonarr e Radarr fazem isso automaticamente ao enviar torrents para o Transmission.
@@ -202,11 +197,10 @@ cd transmission-monitor
 ls -la
 # Deve conter: metadata.json, metadata.desktop, contents/
 
-# 3. Empacote como .plasmoid
-zip -r transmission-monitor.plasmoid \
-    metadata.json \
-    metadata.desktop \
-    contents/
+# 3. Empacote como .plasmoid (estrutura interna: org.kde.transmissionmonitor/)
+mkdir -p /tmp/pkg/org.kde.transmissionmonitor
+cp -r metadata.json metadata.desktop contents README.md /tmp/pkg/org.kde.transmissionmonitor/
+cd /tmp/pkg && zip -r transmission-monitor.plasmoid org.kde.transmissionmonitor
 
 # 4. Instale o pacote
 kpackagetool6 --type Plasma/Applet --install transmission-monitor.plasmoid
