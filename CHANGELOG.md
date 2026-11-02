@@ -1,5 +1,19 @@
 # Changelog
 
+## v2.1.1 (24 Set 2026)
+
+### Correção de bug — estatísticas acumuladas
+
+- **session-stats e torrent-get agora são chamadas independentes**: antes, se `torrent-get` falhasse (ex: campo `labels` rejeitado pelo Transmission), `session-stats` não era atualizado e os valores acumulados (upload/download total) congelavam. Agora cada uma roda em seu próprio `try/catch`, então os totais acumulados são sempre lidos do RPC mesmo se a lista de torrents falhar.
+- **Backoff exponencial em erro**: quando `session-stats` falha, o intervalo do polling dobra (até 60s) em vez de bater continuamente no servidor — reduz consumo de CPU e tráfego em falhas de conexão.
+- **updateUI com throttling**: a reconstrução da lista de torrents só roda quando velocidade ou contagem de torrents realmente mudam, evitando trabalho desnecessário a cada tick de 5s.
+
+### Otimização de CPU (sem remover configurações)
+
+- Chamadas RPC isoladas: uma falha não trava a outra
+- Backoff adaptativo em erros de conexão
+- Throttling de `updateUI` quando dados estão estáveis
+
 ## v2.1.0 (24 Set 2026)
 
 ### Personalização completa

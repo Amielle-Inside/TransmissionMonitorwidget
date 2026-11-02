@@ -35,6 +35,10 @@ PlasmoidItem {
 
     // State
     property var sessionStats: ({})
+    property int backoff: 5000
+    property int _lastDown: -1
+    property int _lastUp: -1
+    property int _lastActive: -1
     property var torrents: []
     property var torrentRows: []  // pre-formatted rows for ListView
     property var speedHistory: []
@@ -921,58 +925,87 @@ PlasmoidItem {
     }
 
     function fetchData() {
+        // session-stats e torrent-get são independentes: um não trava o outro
+        var stats = null
         try {
-            var stats = makeRpcCall("session-stats", {})
-
-            var torrentData = makeRpcCall("torrent-get", {
-                fields: ["id", "name", "status", "downloadDir", "totalSize", "leftUntilDone", "rateDownload", "rateUpload", "uploadRatio", "eta", "peersConnected", "isFinished", "labels", "trackers"]
-            })
-
+            stats = makeRpcCall("session-stats", {})
             root.sessionStats = stats
             root.connected = true
             root.hasData = true
-
-            if (torrentData.torrents) {
-                var filtered = torrentData.torrents.filter(function(t) {
-                    var labels = t.labels || []
-                    return labels.some(function(l) {
-                        var lower = l.toLowerCase()
-                        return lower.includes("sonarr") || lower.includes("radarr")
-                    })
-                })
-                root.torrents = filtered
-            } else {
-                root.torrents = []
-            }
-
-            // Update speed history
-            var now = Date.now()
-            var timeSpanMs = root.graphTimespan === 0 ? 0 : root.graphTimespan * 60 * 1000
-            var downSpeed = stats.downloadSpeed || 0
-            var upSpeed = stats.uploadSpeed || 0
-            root.speedHistory.push({time: now, down: downSpeed, up: upSpeed})
-            if (timeSpanMs > 0) {
-                var cutoff = now - timeSpanMs
-                root.speedHistory = root.speedHistory.filter(function(p) { return p.time > cutoff })
-            } else {
-                // Realtime mode — limit to maxHistoryPoints to avoid unbounded growth
-                if (root.speedHistory.length > root.maxHistoryPoints) {
-                    root.speedHistory = root.speedHistory.slice(-root.maxHistoryPoints)
-                }
-            }
-
-            updateUI()
-            // Canvas repaints handled in updateUI() with typeof checks
-
         } catch (e) {
-            console.error("Fetch error:", e.message)
+            console.error("Fetch error (session-stats):", e.message)
             root.connected = false
             root.hasData = false
             root.lastError = e.message
+            root.backoff = Math.min(root.backoff * 2, 60000)  // backoff exponencial até 60s
+            updateTimer.interval = root.backoff
+            return
         }
+        // reset backoff quando funciona
+        root.backoff = 5000
+        updateTimer.interval = root.backoff
+
+        var torrentData = null
+        try {
+            torrentData = makeRpcCall("torrent-get", {
+                fields: ["id", "name", "status", "downloadDir", "totalSize", "leftUntilDone", "rateDownload", "rateUpload", "uploadRatio", "eta", "peersConnected", "isFinished", "labels", "trackers"]
+            })
+        } catch (e) {
+            console.error("Fetch error (torrent-get):", e.message)
+            root.lastError = e.message
+            // continua com sessionStats atualizado; torrentRows fica vazio
+        }
+
+        if (torrentData && torrentData.torrents) {
+            var filtered = torrentData.torrents.filter(function(t) {
+                var labels = t.labels || []
+                return labels.some(function(l) {
+                    var lower = l.toLowerCase()
+                    return lower.includes("sonarr") || lower.includes("radarr")
+                })
+            })
+            root.torrents = filtered
+        } else {
+            root.torrents = []
+        }
+
+        // Update speed history
+        var now = Date.now()
+        var timeSpanMs = root.graphTimespan === 0 ? 0 : root.graphTimespan * 60 * 1000
+        var downSpeed = stats.downloadSpeed || 0
+        var upSpeed = stats.uploadSpeed || 0
+        root.speedHistory.push({time: now, down: downSpeed, up: upSpeed})
+        if (timeSpanMs > 0) {
+            var cutoff = now - timeSpanMs
+            root.speedHistory = root.speedHistory.filter(function(p) { return p.time > cutoff })
+        } else {
+            // Realtime mode — limit to maxHistoryPoints to avoid unbounded growth
+            if (root.speedHistory.length > root.maxHistoryPoints) {
+                root.speedHistory = root.speedHistory.slice(-root.maxHistoryPoints)
+            }
+        }
+
+        updateUI()
+
+        root.backoff = 5000
+        updateTimer.interval = root.backoff    }    }
+
+        root.backoff = 5000
+        updateTimer.interval = root.backoff
     }
 
     function updateUI() {
+        // throttling: não reconstrói se nada mudou (economiza CPU a cada tick de 5s)
+        var nowDown = root.sessionStats.downloadSpeed || 0
+        var nowUp = root.sessionStats.uploadSpeed || 0
+        var nowActive = (root.torrents && root.torrents.length) || 0
+        if (root._lastDown === nowDown && root._lastUp === nowUp && root._lastActive === nowActive) {
+            return
+        }
+        root._lastDown = nowDown
+        root._lastUp = nowUp
+        root._lastActive = nowActive
+
         // Build torrent rows array for ListView binding (avoids cross-scope ID access)
         var rows = []
         if (root.torrents) {
@@ -1052,7 +1085,7 @@ PlasmoidItem {
     // ==========================================
     Timer {
         id: updateTimer
-        interval: plasmoid.configuration.powerSaveMode === true ? root.updateInterval * 4 : root.updateInterval
+        interval: root.backoff
         running: true
         repeat: true
         onTriggered: fetchData()
