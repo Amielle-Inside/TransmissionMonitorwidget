@@ -988,9 +988,6 @@ PlasmoidItem {
         updateUI()
 
         root.backoff = 5000
-        updateTimer.interval = root.backoff    }    }
-
-        root.backoff = 5000
         updateTimer.interval = root.backoff
     }
 
